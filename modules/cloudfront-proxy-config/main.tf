@@ -17,6 +17,14 @@ resource "aws_s3_bucket" "proxy_config_store" {
 resource "aws_s3_bucket_acl" "proxy_config_store" {
   bucket = aws_s3_bucket.proxy_config_store.id
   acl    = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership" {
+  bucket = aws_s3_bucket.proxy_config_store.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
 }
 
 data "aws_iam_policy_document" "cf_access" {

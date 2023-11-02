@@ -17,6 +17,14 @@ resource "aws_s3_bucket" "static_upload" {
 resource "aws_s3_bucket_acl" "static_upload" {
   bucket = aws_s3_bucket.static_upload.id
   acl    = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership_upload]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership_upload" {
+  bucket = aws_s3_bucket.static_upload.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
 }
 
 # We are using versioning here to ensure that no file gets overridden at upload
@@ -50,6 +58,14 @@ resource "aws_s3_bucket" "static_deploy" {
 resource "aws_s3_bucket_acl" "static_deploy" {
   bucket = aws_s3_bucket.static_deploy.id
   acl    = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership_deploy]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership_deploy" {
+  bucket = aws_s3_bucket.static_deploy.id
+  rule {
+    object_ownership = "ObjectWriter"
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "static_deploy" {
@@ -196,7 +212,7 @@ module "deploy_trigger" {
   function_name             = "${var.deployment_name}_tfn-deploy"
   description               = "Managed by Terraform Next.js"
   handler                   = "handler.handler"
-  runtime                   = "nodejs14.x"
+  runtime                   = "nodejs18.x"
   memory_size               = 1024
   timeout                   = local.lambda_timeout
   publish                   = true
